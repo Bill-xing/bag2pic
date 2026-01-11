@@ -60,6 +60,12 @@ def parse_arguments():
         action='store_true',
         help='Flip IR images horizontally (left-right mirror)'
     )
+    parser.add_argument(
+        '--frame-interval',
+        type=int,
+        default=1,
+        help='Save every Nth frame (default: 1, save all frames). Use 5-10 to skip similar frames'
+    )
     return parser.parse_args()
 
 
@@ -261,7 +267,7 @@ def synchronize_images(rgb_messages, ir_messages, time_threshold):
     return synchronized_pairs
 
 
-def save_synchronized_images(synchronized_pairs, rgb_dir, ir_dir, flip_rgb=False, flip_ir=False):
+def save_synchronized_images(synchronized_pairs, rgb_dir, ir_dir, flip_rgb=False, flip_ir=False, frame_interval=1):
     """
     Save synchronized image pairs with matching filenames
 
@@ -271,6 +277,7 @@ def save_synchronized_images(synchronized_pairs, rgb_dir, ir_dir, flip_rgb=False
         ir_dir: Output directory for IR images
         flip_rgb: Whether to flip RGB images horizontally
         flip_ir: Whether to flip IR images horizontally
+        frame_interval: Save every Nth frame (1 = save all)
     """
     print(f"\nSaving images to:")
     print(f"  RGB: {rgb_dir}")
@@ -280,11 +287,18 @@ def save_synchronized_images(synchronized_pairs, rgb_dir, ir_dir, flip_rgb=False
         print(f"  Note: RGB images will be flipped horizontally")
     if flip_ir:
         print(f"  Note: IR images will be flipped horizontally")
+    if frame_interval > 1:
+        print(f"  Note: Saving every {frame_interval} frames (frame interval={frame_interval})")
 
     saved_count = 0
+    output_index = 1
 
     for idx, (rgb_msg, ir_msg, time_diff) in enumerate(synchronized_pairs):
-        filename = f"{idx+1:04d}.png"
+        # Skip frames based on interval
+        if idx % frame_interval != 0:
+            continue
+
+        filename = f"{output_index:04d}.png"
 
         rgb_img = decode_image(
             rgb_msg['data'],
@@ -317,8 +331,9 @@ def save_synchronized_images(synchronized_pairs, rgb_dir, ir_dir, flip_rgb=False
         cv2.imwrite(str(ir_path), ir_img)
 
         saved_count += 1
+        output_index += 1
 
-        if (idx + 1) % 50 == 0:
+        if saved_count % 50 == 0:
             print(f"Saved {saved_count} image pairs...", end='\r')
 
     print(f"\nSuccessfully saved {saved_count} synchronized image pairs")
@@ -365,7 +380,8 @@ def main():
         rgb_dir,
         ir_dir,
         flip_rgb=args.flip_rgb,
-        flip_ir=args.flip_ir
+        flip_ir=args.flip_ir,
+        frame_interval=args.frame_interval
     )
 
     print("\n" + "="*70)
