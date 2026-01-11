@@ -1,0 +1,23 @@
+# Core dependencies
+numpy>=1.20.0,<3.0.0
+opencv-python>=4.5.0
+pillow>=8.0.0
+
+# ROS bag processing
+# Note: Install these from rospypi index using:
+# pip install --extra-index-url https://rospypi.github.io/simple/ rosbag rospkg roslz4
+
+# These will be installed via the setup script
+# rosbag>=1.15.0
+# rospkg>=1.4.0
+# roslz4>=1.14.0
+
+# Optional: For data analysis and visualization
+pandas>=1.3.0
+matplotlib>=3.3.0
+seaborn>=0.11.0
+
+# Development dependencies (optional)
+# pytest>=7.0.0
+# black>=22.0.0
+# flake8>=4.0.0
